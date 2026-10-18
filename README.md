@@ -2,6 +2,8 @@
 
 一款在浏览器里玩的 3D 滑雪跑酷游戏（灵感来自 Haste）。雪崩在身后越追越快，你要一路冲下雪山，冲过山脚的终点线。
 
+**在线试玩**：https://grampusworld.github.io/3d-ski-adventure/ （电脑浏览器，用键盘和鼠标玩）
+
 ## 玩法
 
 - **加速**：在空中按住 Shift 俯冲，落在暖色的下坡上就是完美落地，速度大增。
@@ -38,7 +40,7 @@ npm run dev
 npm run build
 ```
 
-生成的文件在 `dist/` 目录，可以直接放到任何静态网站托管上。
+生成的文件在 `dist/` 目录。推送到 `main` 分支后，GitHub Actions 会自动打包并部署到 GitHub Pages（见 `.github/workflows/deploy.yml`）。
 
 ## 技术
 

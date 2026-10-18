@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
-// base 用相对路径，打包产物放到任何静态托管的任意子路径下都能直接打开
-export default defineConfig({
-  base: './',
+// 打包时 base 设为 GitHub Pages 的仓库子路径；开发服务器仍在根路径 /
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/3d-ski-adventure/' : '/',
   server: { port: 5173 },
-});
+}));
