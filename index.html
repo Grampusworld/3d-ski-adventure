@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 滑雪大冒险</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <canvas id="speedlines"></canvas>
+
+    <div id="vignette"></div>
+    <div id="flash"></div>
+    <div id="boost-flash"></div>
+
+    <div id="hud" class="hidden">
+      <div id="hud-top">
+        <div id="time">0.0</div>
+        <div id="progress">
+          <div id="progress-collapse"></div>
+          <div id="progress-player"></div>
+        </div>
+        <div id="gap">雪崩 —</div>
+      </div>
+      <div id="run-prompt">按住 <span class="keycap">W</span> 键开始奔跑</div>
+      <div id="collapse-countdown" class="hidden">
+        <div class="cd-label">雪崩倒计时</div>
+        <div id="cd-num">3</div>
+      </div>
+      <div id="collapse-start" class="hidden">雪崩来了！</div>
+      <div id="landing"></div>
+      <div id="score-box"><span class="label">分数</span><span id="score">0</span><span id="multiplier" class="hidden">×1</span></div>
+      <div id="score-pops"></div>
+      <div id="hud-bottom">
+        <div id="sled-timer" class="hidden">
+          <svg viewBox="0 0 32 20" width="30" height="19" aria-hidden="true">
+            <path d="M3 13h22c2 0 3.5-1.5 4-4" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+            <rect x="5" y="6" width="17" height="5" rx="1.5" fill="#d0452f" />
+            <path d="M8 11v2M19 11v2" stroke="#ffffff" stroke-width="2" />
+          </svg>
+          <div class="st-track"><div id="st-fill"></div></div>
+        </div>
+        <div id="speed">0</div>
+        <div id="speed-unit">km/h</div>
+        <div id="perfects">完美落地 0</div>
+      </div>
+    </div>
+
+    <button id="mute-btn" aria-label="静音" title="静音（M）">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+        <path class="wave" d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <path class="slash" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div id="finish-banner" class="hidden">抵达终点！</div>
+    <div id="skip-hint" class="hidden">按任意键跳过</div>
+
+    <div id="debug-info" class="hidden"></div>
+
+    <div id="pip" class="hidden">
+      <div id="pip-fade"></div>
+      <div id="pip-label">滑雪站</div>
+    </div>
+
+    <div id="overlay">
+      <div id="menu" class="panel">
+        <h1>3D 滑雪大冒险</h1>
+        <p class="sub">在雪崩追赶下冲下雪山 · 原型</p>
+        <p class="tip">诀窍：在空中按住俯冲，落在<span class="warm">暖色的下坡</span>上会加速；空中点按空格摆姿势、长按做动作能加分，但没做完就落地会大幅减速。</p>
+        <button id="start-btn">开始</button>
+        <button id="tutorial-btn" class="ghost">新手教程</button>
+      </div>
+      <div id="paused" class="panel hidden">
+        <h2>暂停</h2>
+        <p class="sub">按 ` 键打开调参面板，可以实时调参数</p>
+        <div class="volumes">
+          <label>音乐音量 <input type="range" id="music-vol" min="0" max="100" /></label>
+          <label>音效音量 <input type="range" id="sfx-vol" min="0" max="100" /></label>
+        </div>
+        <button id="resume-btn">继续</button>
+        <button id="restart-btn" class="ghost">重新开始</button>
+      </div>
+      <div id="result" class="panel hidden">
+        <h2 id="result-title"></h2>
+        <div id="result-progress">
+          <div class="rp-track"><div id="rp-fill"></div></div>
+          <svg id="rp-star" class="hidden" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2.5l2.8 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3l-6.1 3.5 1.6-6.8-5.2-4.6 6.9-.6z" />
+          </svg>
+        </div>
+        <p id="result-sub" class="sub"></p>
+        <div class="result-score-label">本次分数</div>
+        <div id="result-score">0</div>
+        <div id="new-record" class="hidden">新纪录！</div>
+        <p id="result-best" class="sub"></p>
+        <table id="result-stats" class="keys"></table>
+        <button id="again-btn">再来一局</button>
+      </div>
+    </div>
+
+    <div id="tutorial" class="hidden">
+      <div class="panel wide">
+        <div class="tut-steps"></div>
+        <div id="tut-step-goal">
+          <h2>游戏目标</h2>
+          <div id="tut-goal" class="tut-figure"></div>
+          <ul class="tips">
+            <li><b>冲到山脚的终点线。</b>按下 W 起跑，3 秒后雪崩从身后冲下来，而且越来越快。冲过终点线就赢了，被雪崩追上这局就结束。</li>
+            <li><b>躲开障碍物。</b>撞上树、石头、小木屋、缆车塔架会被弹开，损失大部分速度；滑雪板可以撞飞，只掉一点速度。</li>
+            <li><b>留意屏幕上方。</b>进度条上的圆点是你，红色部分是雪崩追到的地方，下面写着离雪崩还有多少米。</li>
+          </ul>
+        </div>
+        <div id="tut-step-keys" class="hidden">
+          <h2>操作方式</h2>
+          <div id="tut-keymap"></div>
+          <p class="tut-minor">← → 也能转向 · Esc 暂停 · R 重新开始 · M 静音</p>
+        </div>
+        <div id="tut-step-demo" class="hidden">
+          <h2>怎样跑得更快</h2>
+          <canvas id="tut-canvas" width="640" height="330"></canvas>
+          <p id="tut-caption"></p>
+          <p class="tut-minor"><span class="swatch down"></span>暖白 = 下坡　<span class="swatch up"></span>冷蓝 = 上坡</p>
+        </div>
+        <div id="tut-step-tricks" class="hidden">
+          <h2>空中耍酷与得分</h2>
+          <div class="trick-cards">
+            <div class="trick-card"><span class="kc">点按 空格</span><b>摆姿势</b><span class="tc-sub">0.8 秒 · +150 分</span></div>
+            <div class="trick-card action"><span class="kc">长按 空格</span><b>做动作</b><span class="tc-sub">1.25 秒 · +400 分</span></div>
+          </div>
+          <ul class="tips">
+            <li><b>连着做，倍率越来越高。</b>同一次腾空里，每做完一个姿势，后面的得分 ×1.5；每做完一个动作，后面的得分 ×3，最高 20 倍。落地后倍率清零。</li>
+            <li><b>一定要做完再落地。</b>没做完就落地算失误，速度只剩三成。来不及就按 Shift，立刻取消并俯冲。</li>
+            <li><b>其他得分：</b>每秒 +10 · 完美落地 +100（也乘倍率）· 冲过终点 +1000 · 拿到雪橇车 +500。</li>
+          </ul>
+        </div>
+        <div id="tut-step-sled" class="hidden">
+          <h2>雪橇车</h2>
+          <div id="tut-gears" class="tut-figure"></div>
+          <ul class="tips">
+            <li><b>找发光的小木屋。</b>全程有 4 间，门前有橙色光圈和光柱。碰到光圈就进屋，3 秒后骑着雪橇车冲出来（+500 分）。</li>
+            <li><b>速度锁定，只管转向。</b>雪橇车用 10 秒，速度从 350 km/h 起步、不会掉；刚冲出木屋的 1.5 秒无敌，撞上什么都直接撞飞。</li>
+            <li><b>空中做动作就升档。</b>骑着雪橇车每做完一个动作 +1500 分，并且立刻升一档，最高 700 km/h。</li>
+            <li><b>它还是保命符。</b>硬着陆、失误或撞上大障碍，雪橇车会炸掉，但你不减速。骑着车碰到新木屋，会换一辆新车，从 350 重新开始。</li>
+          </ul>
+        </div>
+        <div class="tut-actions">
+          <button id="tut-skip" class="ghost">跳过</button>
+          <button id="tut-next">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

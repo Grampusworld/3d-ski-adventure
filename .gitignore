@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+
+# 本机工具的配置和笔记，不放进仓库
+.claude/
+.workbuddy/
